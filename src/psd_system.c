@@ -5,14 +5,14 @@
 #include "psd_system.h"
 
 /*
-����malloc()��calloc()������������̬�����ڴ�ռ�,��������������
-malloc()������һ������,��Ҫ������ڴ�ռ�Ĵ�С:
+函数malloc()和calloc()都可以用来动态分配内存空间,但两者稍有区别。
+malloc()函数有一个参数,即要分配的内存空间的大小:
 void*malloc(size_tsize);
-calloc()��������������,�ֱ�ΪԪ�ص���Ŀ��ÿ��Ԫ�صĴ�С,�����������ĳ˻�����Ҫ������ڴ�ռ�Ĵ�С��
+calloc()函数有两个参数,分别为元素的数目和每个元素的大小,这两个参数的乘积就是要分配的内存空间的大小。
 void*calloc(size_tnumElements,size_tsizeOfElement);
-������óɹ�,����malloc()�ͺ���calloc()����������������ڴ�ռ���׵�ַ��
-����malloc()�ͺ���calloc() ����Ҫ������ǰ�߲��ܳ�ʼ����������ڴ�ռ�,�������ܡ������malloc()����������ڴ�ռ�ԭ��û�б�ʹ�ù��������е�ÿһλ���ܶ���0;��֮, ����ⲿ���ڴ������������,�����п��������и��ָ��������ݡ�Ҳ����˵��ʹ��malloc()�����ĳ���ʼʱ(�ڴ�ռ仹û�б����·���)�������� ��,������һ��ʱ��(�ڴ�ռ仹�Ѿ������·���)���ܻ�������⡣
-����calloc() �Ὣ��������ڴ�ռ��е�ÿһλ����ʼ��Ϊ��,Ҳ����˵,�������Ϊ�ַ����ͻ��������͵�Ԫ�ط����ڴ�,������ЩԪ�ؽ���֤�ᱻ��ʼ��Ϊ0;�������Ϊָ �����͵�Ԫ�ط����ڴ�,������ЩԪ��ͨ���ᱻ��ʼ��Ϊ��ָ��;�����Ϊʵ�����ݷ����ڴ�,����ЩԪ�ػᱻ��ʼ��Ϊ�����͵��㡣
+如果调用成功,函数malloc()和函数calloc()都将返回所分配的内存空间的首地址。
+函数malloc()和函数calloc() 的主要区别是前者不能初始化所分配的内存空间,而后者能。如果由malloc()函数分配的内存空间原来没有被使用过，则其中的每一位可能都是0;反之, 如果这部分内存曾经被分配过,则其中可能遗留有各种各样的数据。也就是说，使用malloc()函数的程序开始时(内存空间还没有被重新分配)能正常进 行,但经过一段时间(内存空间还已经被重新分配)可能会出现问题。
+函数calloc() 会将所分配的内存空间中的每一位都初始化为零,也就是说,如果你是为字符类型或整数类型的元素分配内存,那麽这些元素将保证会被初始化为0;如果你是为指 针类型的元素分配内存,那麽这些元素通常会被初始化为空指针;如果你为实型数据分配内存,则这些元素会被初始化为浮点型的零。
 */
 void * psd_malloc(psd_int size)
 {
@@ -62,7 +62,7 @@ psd_int psd_fsize(void * file)
 //we only read byte one by one. do NOT read word!!!
 psd_int psd_fread(psd_uchar * buffer, psd_int count, void * file)
 {
-	return fread(buffer, 1, count, (FILE *)file);
+	return (psd_int) fread(buffer, 1, count, (FILE *)file);
 }
 
 psd_int psd_fseek(void * file, psd_int length)
@@ -75,25 +75,25 @@ void psd_fclose(void * file)
 	fclose((FILE *)file);
 }
 /*
-����ԭ��:
+函数原型:
 size_t fwrite(   const void *buffer,   size_t size,   size_t count,   FILE *stream ); 
-�����б�:
-buffer    // ��д���ݻ��������׵�ַ,Pointer to data to be written    
-size  //һ��д�����ݿ�Ĵ�С,Item size in bytes
-count  // д�����ݿ�Ĵ���,Maximum number of items  to be written
-stream  // �ļ��ṹָ��,Pointer to FILE structure
+参数列表:
+buffer    // 被写数据缓冲区的首地址,Pointer to data to be written    
+size  //一次写入数据块的大小,Item size in bytes
+count  // 写如数据快的次数,Maximum number of items  to be written
+stream  // 文件结构指针,Pointer to FILE structure
 eg: 
     fwrite(pBuffer, sizeof(unsigned long), 0x20000, fp_dma);
-//��pBuffer ���0X20000��unsigned long���͵����ݵ�fp_dma�ļ�.
+//从pBuffer 里搬0X20000个unsigned long类型的数据到fp_dma文件.
 */
 psd_int psd_fwrite(psd_uchar * buffer, psd_int count, void * file)
 {
 	return fwrite(buffer, 1, count, (FILE *)file);
 }
 /*
-ftell������������ȡ�ļ��ĵ�ǰ��дλ��;
-����ԭ��: long ftell(FILE *fp)
-��������:�õ���ʽ�ļ��ĵ�ǰ��дλ��,�䷵��ֵ�ǵ�ǰ��дλ��ƫ���ļ�ͷ�����ֽ���.
+ftell函数是用来获取文件的当前读写位置;
+函数原型: long ftell(FILE *fp)
+函数功能:得到流式文件的当前读写位置,其返回值是当前读写位置偏离文件头部的字节数.
 */
 psd_int psd_ftell(void * file)
 {
